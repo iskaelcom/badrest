@@ -1,0 +1,123 @@
+/* History Panel Styles */
+.header-actions {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+}
+
+.history-toggle {
+    padding: 8px 16px;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    color: var(--text-secondary);
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+    transition: all 0.2s ease;
+}
+
+.history-toggle:hover {
+    background: var(--bg-tertiary);
+    border-color: var(--accent-primary);
+    color: var(--accent-primary);
+}
+
+.history-panel {
+    position: absolute;
+    top: 70px;
+    right: 20px;
+    width: 400px;
+    max-height: 500px;
+    background: var(--bg-primary);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    z-index: 1000;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+.history-header {
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--border-color);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.history-header h3 {
+    margin: 0;
+    font-size: 16px;
+    color: var(--text-primary);
+}
+
+.clear-history-btn {
+    padding: 6px 12px;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    color: var(--text-secondary);
+    cursor: pointer;
+    font-size: 12px;
+    transition: all 0.2s ease;
+}
+
+.clear-history-btn:hover {
+    background: #ef4444;
+    border-color: #ef4444;
+    color: white;
+}
+
+.history-list {
+    overflow-y: auto;
+    max-height: 420px;
+}
+
+.history-empty {
+    padding: 40px 20px;
+    text-align: center;
+    color: var(--text-muted);
+    font-style: italic;
+}
+
+.history-item {
+    padding: 12px 20px;
+    border-bottom: 1px solid var(--border-color);
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.history-item:hover {
+    background: var(--bg-secondary);
+}
+
+.history-item:last-child {
+    border-bottom: none;
+}
+
+.history-item-method {
+    display: inline-block;
+    padding: 2px 8px;
+    background: var(--accent-primary);
+    color: white;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 600;
+    margin-bottom: 6px;
+}
+
+.history-item-url {
+    color: var(--text-primary);
+    font-size: 13px;
+    margin-bottom: 4px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.history-item-time {
+    color: var(--text-muted);
+    font-size: 11px;
+}
