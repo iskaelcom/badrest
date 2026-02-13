@@ -128,6 +128,16 @@ function App() {
     onConfirm: () => void;
   } | null>(null);
 
+  // Tab context menu state
+  const [tabContextMenu, setTabContextMenu] = useState<{
+    x: number;
+    y: number;
+    tabId: string;
+  } | null>(null);
+
+  // Save-to-collection picker
+  const [showCollectionPicker, setShowCollectionPicker] = useState(false);
+
 
 
   // Tab management functions
@@ -232,6 +242,34 @@ function App() {
           behavior: 'smooth'
         });
       }
+    });
+  };
+
+  const duplicateTab = (tabId: string) => {
+    saveCurrentTab();
+    const sourceTab = tabs.find(t => t.id === tabId);
+    if (!sourceTab) return;
+
+    const newTab: RequestTab = {
+      ...sourceTab,
+      id: Date.now().toString(),
+      name: sourceTab.name ? `${sourceTab.name} (copy)` : "New Request",
+      collectionRequestId: undefined,
+      collectionId: undefined,
+      collectionDirty: undefined,
+    };
+
+    const sourceIndex = tabs.findIndex(t => t.id === tabId);
+    const updatedTabs = [...tabs];
+    updatedTabs.splice(sourceIndex + 1, 0, newTab);
+    setTabs(updatedTabs);
+    setActiveTabId(newTab.id);
+    loadTabState(newTab);
+    saveTabs(updatedTabs);
+
+    requestAnimationFrame(() => {
+      const tabEl = tabListRef.current?.children[sourceIndex + 1] as HTMLElement | undefined;
+      tabEl?.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'nearest' });
     });
   };
 
@@ -501,7 +539,17 @@ function App() {
 
   const saveTabToCollection = () => {
     const currentTab = tabs.find(t => t.id === activeTabId);
-    if (!currentTab?.collectionRequestId) return;
+
+    // If tab is not linked to a collection, show picker
+    if (!currentTab?.collectionRequestId) {
+      if (collections.length === 0) {
+        // No collections exist, open collections sidebar so user can create one
+        setShowCollections(true);
+        return;
+      }
+      setShowCollectionPicker(true);
+      return;
+    }
 
     // Find which collection contains this request
     let targetCollectionId = currentTab.collectionId;
@@ -539,6 +587,41 @@ function App() {
     );
     setTabs(updatedTabs);
     saveTabs(updatedTabs);
+  };
+
+  const saveNewRequestToCollection = (collectionId: string) => {
+    const requestId = Date.now().toString();
+    const currentTab = tabs.find(t => t.id === activeTabId);
+    const tabName = currentTab?.name && currentTab.name !== currentTab.url
+      ? currentTab.name
+      : url || 'New Request';
+
+    const savedRequest: SavedRequest = {
+      id: requestId,
+      name: tabName,
+      method,
+      url,
+      params: params.filter(p => p.key || p.value),
+      headers: headers.filter(h => h.key || h.value),
+      bodyType,
+      bodyContent,
+    };
+
+    saveCollections(collections.map(c =>
+      c.id === collectionId
+        ? { ...c, requests: [...c.requests, savedRequest], updatedAt: Date.now() }
+        : c
+    ));
+
+    // Link the current tab to this collection request
+    const updatedTabs = tabs.map(t =>
+      t.id === activeTabId
+        ? { ...t, collectionRequestId: requestId, collectionId, collectionDirty: false }
+        : t
+    );
+    setTabs(updatedTabs);
+    saveTabs(updatedTabs);
+    setShowCollectionPicker(false);
   };
 
   const renameRequestInCollection = (collectionId: string, requestId: string, name: string) => {
@@ -741,6 +824,14 @@ function App() {
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [tabs, activeTabId, collections, method, url, params, headers, bodyType, bodyContent]);
+
+  // Close tab context menu on click anywhere
+  useEffect(() => {
+    if (!tabContextMenu) return;
+    const handleClick = () => setTabContextMenu(null);
+    window.addEventListener("click", handleClick);
+    return () => window.removeEventListener("click", handleClick);
+  }, [tabContextMenu]);
 
   const toggleTheme = () => {
     setTheme(theme === "dark" ? "light" : "dark");
@@ -983,6 +1074,10 @@ function App() {
                   className={`request-tab ${tab.id === activeTabId ? 'active' : ''} ${tabDragFrom !== null && tabDragOver === index && tabDragFrom !== index ? 'tab-drop-target' : ''} ${tabDragFrom === index ? 'tab-dragging' : ''}`}
                   onClick={() => { if (tabDragFrom === null) switchTab(tab.id); }}
                   onMouseDown={(e) => handleTabMouseDown(index, e)}
+                  onContextMenu={(e) => {
+                    e.preventDefault();
+                    setTabContextMenu({ x: e.clientX, y: e.clientY, tabId: tab.id });
+                  }}
                 >
                   <span className="tab-method-badge">{tab.method}</span>
                   {tab.collectionDirty && <span className="tab-dirty-dot" title="Unsaved changes (Cmd+S to save)" />}
@@ -1300,6 +1395,75 @@ function App() {
         </div>
       </div>
       </div>
+
+      {/* Tab Context Menu */}
+      {tabContextMenu && (
+        <div
+          className="tab-context-menu"
+          style={{ top: tabContextMenu.y, left: tabContextMenu.x }}
+          onClick={(e) => e.stopPropagation()}
+        >
+          <button
+            className="tab-context-menu-item"
+            onClick={() => {
+              duplicateTab(tabContextMenu.tabId);
+              setTabContextMenu(null);
+            }}
+          >
+            Duplicate Tab
+          </button>
+          <button
+            className="tab-context-menu-item"
+            onClick={() => {
+              const tab = tabs.find(t => t.id === tabContextMenu.tabId);
+              if (tab) startTabRename(tab);
+              setTabContextMenu(null);
+            }}
+          >
+            Rename Tab
+          </button>
+          {tabs.length > 1 && (
+            <button
+              className="tab-context-menu-item delete"
+              onClick={() => {
+                closeTab(tabContextMenu.tabId);
+                setTabContextMenu(null);
+              }}
+            >
+              Close Tab
+            </button>
+          )}
+        </div>
+      )}
+
+      {/* Save to Collection Picker */}
+      {showCollectionPicker && (
+        <div className="confirm-overlay" onClick={() => setShowCollectionPicker(false)}>
+          <div className="confirm-dialog collection-picker" onClick={(e) => e.stopPropagation()}>
+            <p className="confirm-message">Save to Collection</p>
+            <div className="collection-picker-list">
+              {collections.map(c => (
+                <button
+                  key={c.id}
+                  className="collection-picker-item"
+                  onClick={() => saveNewRequestToCollection(c.id)}
+                >
+                  <span className="collection-picker-name">{c.name}</span>
+                  <span className="collection-picker-count">{c.requests.length}</span>
+                </button>
+              ))}
+            </div>
+            <div className="confirm-actions">
+              <button
+                className="confirm-cancel-btn"
+                onClick={() => setShowCollectionPicker(false)}
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Confirm Dialog */}
       {confirmDialog && (
