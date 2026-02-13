@@ -1062,6 +1062,12 @@ function App() {
     setShowHistory(false);
   };
 
+  const deleteHistoryItem = (id: string) => {
+    const updated = history.filter(h => h.id !== id);
+    setHistory(updated);
+    localStorage.setItem('badrest-history', JSON.stringify(updated));
+  };
+
   const clearHistory = () => {
     setHistory([]);
     localStorage.removeItem('badrest-history');
@@ -1117,6 +1123,16 @@ function App() {
                   <div className="history-item-time">
                     {new Date(item.timestamp).toLocaleString()}
                   </div>
+                  <button
+                    className="history-item-delete"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      deleteHistoryItem(item.id);
+                    }}
+                    title="Delete"
+                  >
+                    ×
+                  </button>
                 </div>
               ))
             )}
