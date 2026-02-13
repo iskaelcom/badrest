@@ -807,14 +807,20 @@ function App() {
     localStorage.setItem("badrest-theme", theme);
   }, [theme]);
 
-  // Cmd+W closes current tab instead of window
+  // Cmd+W closes current tab instead of window, Cmd+T creates new tab
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
+      // Cmd+W / Ctrl+W - Close tab
       if ((e.metaKey || e.ctrlKey) && e.key === "w") {
         e.preventDefault();
         if (tabs.length > 1) {
           closeTab(activeTabId);
         }
+      }
+      // Cmd+T / Ctrl+T - New tab
+      if ((e.metaKey || e.ctrlKey) && e.key === "t") {
+        e.preventDefault();
+        createNewTab();
       }
     };
     window.addEventListener("keydown", handleKeyDown);

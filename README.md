@@ -7,21 +7,55 @@ Designed to be a fast and efficient alternative to Postman/Insomnia.
 
 ## 🚀 Features
 
-- **Multi-Tab Interface**: Work on multiple requests simultaneously with isolated state.
-- **Request Builder**: Support for GET, POST, PUT, DELETE, PATCH, and more.
-- **Advanced Editors**:
-  - Request Headers
-  - Query Parameters
-  - Request Body (JSON, Text, formatting supported)
-- **Response Viewer**:
-  - Validated JSON Tree View with Expand/Collapse
-  - Syntax Highlighting
-  - Response Headers & Status
-  - Save Response as JSON file
-- **History**: Automatically saves your request history locally.
-- **Persistence**: tabs and settings are saved automatically (localStorage).
-- **Theming**: Beautiful Dark & Light mode.
-- **Cross-Platform**: Built for macOS (Apple Silicon & Intel) and Windows.
+### Core Functionality
+- **Multi-Tab Interface**: Work on multiple requests simultaneously with isolated state
+  - Tab reordering with drag & drop
+  - Tab renaming (double-click)
+  - Duplicate tabs
+  - Close tabs (single, all others, to right)
+  - Context menu with right-click
+- **Request Builder**: Full HTTP method support
+  - GET, POST, PUT, DELETE, PATCH, HEAD, OPTIONS
+  - Query Parameters editor
+  - Headers editor with key-value pairs
+  - Request Body support (None, JSON, Text, Form)
+  - URL auto-complete
+
+### Collections & Organization
+- **Collections**: Organize and save requests in collections
+  - Create, rename, delete collections
+  - Drag & drop to reorder collections
+  - Collapse/expand collections
+  - Collection-level headers (applied to all requests)
+  - Collection-level variables with `{{variable}}` substitution
+  - Import/export collections as JSON
+  - Link tabs to collection requests with auto-save (Cmd+S)
+  - Dirty indicator for unsaved changes
+
+### Response Handling
+- **Advanced Response Viewer**:
+  - Interactive JSON Tree View with expand/collapse
+  - Syntax highlighting
+  - Copy response to clipboard
+  - Save response as JSON file
+  - Response headers viewer
+  - Status code badges with color coding
+  - Response time and size metrics
+
+### Productivity Features
+- **Request History**: Automatic history tracking
+- **Persistence**: Auto-save tabs, collections, and settings
+- **Keyboard Shortcuts**:
+  - `Cmd+S` / `Ctrl+S`: Save request to collection
+  - `Cmd+T` / `Ctrl+T`: New tab
+  - `Enter`: Send request (in URL bar)
+- **Theme Support**: Beautiful dark & light modes
+- **Resizable Panels**: Adjust request/response panel widths
+
+### Platform
+- **Cross-Platform**: Native builds for macOS (Apple Silicon & Intel) and Windows
+- **Lightweight**: Fast startup and low memory footprint
+- **Native Performance**: Built with Rust backend via Tauri v2
 
 ## 🛠️ Tech Stack
 
