@@ -17,20 +17,11 @@
     flex: 1;
     overflow-x: auto;
     overflow-y: hidden;
-    scrollbar-width: thin;
+    scrollbar-width: none;
 }
 
 .tab-list::-webkit-scrollbar {
-    height: 4px;
-}
-
-.tab-list::-webkit-scrollbar-track {
-    background: transparent;
-}
-
-.tab-list::-webkit-scrollbar-thumb {
-    background: var(--border-color);
-    border-radius: 2px;
+    display: none;
 }
 
 .request-tab {
