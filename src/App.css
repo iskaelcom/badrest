@@ -159,7 +159,7 @@ body {
 
 /* Resize Handle */
 .resize-handle {
-  width: 5px;
+  width: 3px;
   cursor: col-resize;
   background: transparent;
   flex-shrink: 0;
@@ -419,6 +419,7 @@ body {
 }
 
 .copy-button {
+  margin: 4px;
   margin-left: auto;
   padding: 4px 16px;
   background: var(--bg-secondary);
@@ -445,6 +446,7 @@ body {
 }
 
 .save-button {
+  margin: 4px;
   padding: 4px 16px;
   background: var(--bg-secondary);
   border: 1px solid var(--border-color);
@@ -605,7 +607,7 @@ body {
 }
 
 .response-header {
-  padding: 20px 24px;
+  padding: 6px 16px 7px;
   background: var(--bg-secondary);
   border-bottom: 1px solid var(--border-color);
 }
@@ -614,7 +616,6 @@ body {
   display: flex;
   align-items: center;
   gap: 16px;
-  margin-bottom: 12px;
 }
 
 .status-badge {

@@ -199,6 +199,10 @@
     box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
 }
 
+.tab-bar {
+    padding-bottom: 0;
+}
+
 .tab-context-menu-item {
     display: block;
     width: 100%;
