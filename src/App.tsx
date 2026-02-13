@@ -1146,12 +1146,18 @@ function App() {
                 <option value="OPTIONS">OPTIONS</option>
               </select>
 
-              <input
-                type="text"
+              <textarea
                 className="url-input"
                 value={url}
                 onChange={(e) => setUrl(e.target.value)}
                 placeholder="Enter request URL..."
+                rows={1}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    e.preventDefault();
+                    sendRequest();
+                  }
+                }}
               />
 
               <button

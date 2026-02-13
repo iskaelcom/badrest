@@ -172,7 +172,7 @@ body {
 .url-bar {
   display: flex;
   gap: 12px;
-  align-items: stretch;
+  align-items: flex-start;
 }
 
 .method-select {
@@ -208,6 +208,14 @@ body {
   color: var(--text-primary);
   font-size: 14px;
   transition: all 0.2s ease;
+  resize: none;
+  font-family: inherit;
+  line-height: 1.4;
+  overflow: hidden;
+  white-space: nowrap;
+  min-height: 44px;
+  max-height: 44px;
+  field-sizing: content;
 }
 
 .url-input:hover {
@@ -218,6 +226,10 @@ body {
   outline: none;
   border-color: var(--accent-primary);
   box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+  white-space: pre-wrap;
+  word-break: break-all;
+  overflow-y: auto;
+  max-height: 120px;
 }
 
 .url-input::placeholder {
