@@ -4,6 +4,7 @@
     align-items: center;
     gap: 8px;
     padding: 8px 16px;
+    padding-bottom: 0;
     background: var(--bg-secondary);
     border-bottom: 1px solid var(--border-color);
     overflow-x: auto;
@@ -39,12 +40,14 @@
     padding: 8px 12px;
     background: var(--bg-primary);
     border: 1px solid var(--border-color);
+    border-bottom: 0px solid transparent;
     border-radius: 6px 6px 0 0;
     cursor: pointer;
     transition: all 0.2s ease;
     min-width: 180px;
     max-width: 250px;
     flex-shrink: 0;
+    user-select: none;
 }
 
 .request-tab:hover {
@@ -67,6 +70,17 @@
     right: 0;
     height: 2px;
     background: var(--bg-primary);
+}
+
+.request-tab.tab-drop-target {
+    border-left: 3px solid var(--accent-primary);
+    background: var(--bg-tertiary);
+}
+
+.request-tab.tab-dragging {
+    opacity: 0.35;
+    cursor: grabbing;
+    user-select: none;
 }
 
 .tab-method-badge {

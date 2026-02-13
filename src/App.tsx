@@ -1,14 +1,16 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import logo from "./assets/badrest_logo.png";
 import { invoke } from "@tauri-apps/api/core";
-import { save } from "@tauri-apps/plugin-dialog";
-import { writeTextFile } from "@tauri-apps/plugin-fs";
+import { save, open } from "@tauri-apps/plugin-dialog";
+import { writeTextFile, readTextFile } from "@tauri-apps/plugin-fs";
 import { JsonViewer } from "./JsonViewer";
+import { CollectionsSidebar } from "./Collections";
 import "./App.css";
 import "./History.css";
 import "./Tabs.css";
+import "./Collections.css";
 
-interface KeyValue {
+export interface KeyValue {
   key: string;
   value: string;
 }
@@ -50,6 +52,30 @@ interface RequestTab {
   response: HttpResponse | null;
   loading: boolean;
   error: string | null;
+  collectionRequestId?: string;
+  collectionId?: string;
+}
+
+export interface SavedRequest {
+  id: string;
+  name: string;
+  method: string;
+  url: string;
+  params: KeyValue[];
+  headers: KeyValue[];
+  bodyType: BodyType;
+  bodyContent: string;
+}
+
+export interface Collection {
+  id: string;
+  name: string;
+  requests: SavedRequest[];
+  headers: KeyValue[];
+  variables: KeyValue[];
+  createdAt: number;
+  updatedAt: number;
+  collapsed: boolean;
 }
 
 function App() {
@@ -75,10 +101,21 @@ function App() {
   const [tabs, setTabs] = useState<RequestTab[]>([]);
   const [activeTabId, setActiveTabId] = useState<string>("");
 
+  // Refs
+  const tabListRef = useRef<HTMLDivElement>(null);
+  const tabDragState = useRef<{ index: number; startX: number } | null>(null);
+  const [tabDragFrom, setTabDragFrom] = useState<number | null>(null);
+  const [tabDragOver, setTabDragOver] = useState<number | null>(null);
+
   // UI state
   const [copied, setCopied] = useState(false);
+  const [savedToCollection, setSavedToCollection] = useState(false);
   const [history, setHistory] = useState<HistoryItem[]>([]);
   const [showHistory, setShowHistory] = useState(false);
+
+  // Collections state
+  const [collections, setCollections] = useState<Collection[]>([]);
+  const [showCollections, setShowCollections] = useState(false);
 
 
 
@@ -174,6 +211,16 @@ function App() {
     setActiveTabId(newTab.id);
     loadTabState(newTab);
     saveTabs(updatedTabs);
+
+    // Auto-scroll to the new tab
+    requestAnimationFrame(() => {
+      if (tabListRef.current) {
+        tabListRef.current.scrollTo({
+          left: tabListRef.current.scrollWidth,
+          behavior: 'smooth'
+        });
+      }
+    });
   };
 
   const switchTab = (tabId: string) => {
@@ -206,11 +253,295 @@ function App() {
     saveTabs(updatedTabs);
   };
 
+  const reorderTabs = (fromIndex: number, toIndex: number) => {
+    if (fromIndex === toIndex) return;
+    const reordered = [...tabs];
+    const [moved] = reordered.splice(fromIndex, 1);
+    reordered.splice(toIndex, 0, moved);
+    setTabs(reordered);
+    saveTabs(reordered);
+  };
+
+  const handleTabMouseDown = (index: number, e: React.MouseEvent) => {
+    if ((e.target as HTMLElement).closest('.tab-close')) return;
+    e.preventDefault();
+    tabDragState.current = { index, startX: e.clientX };
+  };
+
+  // Mouse-based tab reorder
+  useEffect(() => {
+    const DRAG_THRESHOLD = 8;
+
+    const getHoverIndex = (clientX: number): number | null => {
+      const tabList = tabListRef.current;
+      if (!tabList) return null;
+      const tabElements = tabList.querySelectorAll('.request-tab');
+      for (let i = 0; i < tabElements.length; i++) {
+        const rect = tabElements[i].getBoundingClientRect();
+        if (clientX >= rect.left && clientX <= rect.right) {
+          return i;
+        }
+      }
+      return null;
+    };
+
+    const handleMouseMove = (e: MouseEvent) => {
+      if (!tabDragState.current) return;
+
+      // Start drag only after threshold
+      if (tabDragFrom === null) {
+        if (Math.abs(e.clientX - tabDragState.current.startX) >= DRAG_THRESHOLD) {
+          setTabDragFrom(tabDragState.current.index);
+        }
+        return;
+      }
+
+      setTabDragOver(getHoverIndex(e.clientX));
+    };
+
+    const handleMouseUp = () => {
+      if (tabDragFrom !== null && tabDragOver !== null && tabDragFrom !== tabDragOver) {
+        reorderTabs(tabDragFrom, tabDragOver);
+      }
+      tabDragState.current = null;
+      setTabDragFrom(null);
+      setTabDragOver(null);
+    };
+
+    window.addEventListener('mousemove', handleMouseMove);
+    window.addEventListener('mouseup', handleMouseUp);
+    return () => {
+      window.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener('mouseup', handleMouseUp);
+    };
+  }, [tabDragFrom, tabDragOver, tabs]);
+
+  // Collection management functions
+  const saveCollections = (cols: Collection[]) => {
+    setCollections(cols);
+    localStorage.setItem('badrest-collections', JSON.stringify(cols));
+  };
+
+  const createCollection = (name: string) => {
+    const newCollection: Collection = {
+      id: Date.now().toString(),
+      name,
+      requests: [],
+      headers: [],
+      variables: [],
+      createdAt: Date.now(),
+      updatedAt: Date.now(),
+      collapsed: false,
+    };
+    saveCollections([...collections, newCollection]);
+  };
+
+  const renameCollection = (id: string, name: string) => {
+    saveCollections(collections.map(c =>
+      c.id === id ? { ...c, name, updatedAt: Date.now() } : c
+    ));
+  };
+
+  const deleteCollection = (id: string) => {
+    saveCollections(collections.filter(c => c.id !== id));
+  };
+
+  const toggleCollectionCollapsed = (id: string) => {
+    saveCollections(collections.map(c =>
+      c.id === id ? { ...c, collapsed: !c.collapsed } : c
+    ));
+  };
+
+  const saveRequestToCollection = (collectionId: string) => {
+    const savedRequest: SavedRequest = {
+      id: Date.now().toString(),
+      name: url || 'New Request',
+      method,
+      url,
+      params: params.filter(p => p.key || p.value),
+      headers: headers.filter(h => h.key || h.value),
+      bodyType,
+      bodyContent,
+    };
+
+    saveCollections(collections.map(c =>
+      c.id === collectionId
+        ? { ...c, requests: [...c.requests, savedRequest], updatedAt: Date.now() }
+        : c
+    ));
+  };
+
+  const openRequestFromCollection = (collectionId: string, requestId: string) => {
+    const collection = collections.find(c => c.id === collectionId);
+    if (!collection) return;
+    const request = collection.requests.find(r => r.id === requestId);
+    if (!request) return;
+
+    // Check if this collection request is already open in an existing tab
+    const existingTab = tabs.find(t => t.collectionRequestId === requestId);
+    if (existingTab) {
+      switchTab(existingTab.id);
+      return;
+    }
+
+    saveCurrentTab();
+
+    // Apply collection variables to the request
+    const vars = collection.variables.filter(v => v.key && v.value);
+    const applyVars = (str: string) => {
+      let result = str;
+      vars.forEach(({ key, value }) => {
+        result = result.split(`{{${key}}}`).join(value);
+      });
+      return result;
+    };
+
+    const newTab: RequestTab = {
+      id: Date.now().toString(),
+      name: request.name,
+      method: request.method,
+      url: applyVars(request.url),
+      activeTab: "params",
+      responseTab: "body",
+      params: request.params.length > 0
+        ? request.params.map(p => ({ key: p.key, value: applyVars(p.value) }))
+        : [{ key: "", value: "" }],
+      headers: [
+        ...collection.headers.filter(h => h.key && h.value),
+        ...(request.headers.length > 0 ? request.headers : []),
+        { key: "", value: "" }
+      ],
+      bodyType: request.bodyType,
+      bodyContent: applyVars(request.bodyContent),
+      response: null,
+      loading: false,
+      error: null,
+      collectionRequestId: requestId,
+      collectionId: collectionId,
+    };
+
+    const updatedTabs = [...tabs, newTab];
+    setTabs(updatedTabs);
+    setActiveTabId(newTab.id);
+    loadTabState(newTab);
+    saveTabs(updatedTabs);
+
+    requestAnimationFrame(() => {
+      if (tabListRef.current) {
+        tabListRef.current.scrollTo({ left: tabListRef.current.scrollWidth, behavior: 'smooth' });
+      }
+    });
+  };
+
+  const saveTabToCollection = () => {
+    const currentTab = tabs.find(t => t.id === activeTabId);
+    if (!currentTab?.collectionRequestId) return;
+
+    // Find which collection contains this request
+    let targetCollectionId = currentTab.collectionId;
+    if (!targetCollectionId) {
+      const found = collections.find(c =>
+        c.requests.some(r => r.id === currentTab.collectionRequestId)
+      );
+      if (!found) return;
+      targetCollectionId = found.id;
+    }
+
+    saveCollections(collections.map(c => {
+      if (c.id !== targetCollectionId) return c;
+      return {
+        ...c,
+        requests: c.requests.map(r => {
+          if (r.id !== currentTab.collectionRequestId) return r;
+          return {
+            ...r,
+            name: url || r.name,
+            method,
+            url,
+            params: params.filter(p => p.key || p.value),
+            headers: headers.filter(h => h.key || h.value),
+            bodyType,
+            bodyContent,
+          };
+        }),
+        updatedAt: Date.now(),
+      };
+    }));
+
+    setSavedToCollection(true);
+    setTimeout(() => setSavedToCollection(false), 1500);
+  };
+
+  const removeRequestFromCollection = (collectionId: string, requestId: string) => {
+    saveCollections(collections.map(c =>
+      c.id === collectionId
+        ? { ...c, requests: c.requests.filter(r => r.id !== requestId), updatedAt: Date.now() }
+        : c
+    ));
+  };
+
+  const reorderRequest = (collectionId: string, fromIndex: number, toIndex: number) => {
+    saveCollections(collections.map(c => {
+      if (c.id !== collectionId) return c;
+      const reqs = [...c.requests];
+      const [moved] = reqs.splice(fromIndex, 1);
+      reqs.splice(toIndex, 0, moved);
+      return { ...c, requests: reqs, updatedAt: Date.now() };
+    }));
+  };
+
+  const updateCollectionHeaders = (id: string, newHeaders: KeyValue[]) => {
+    saveCollections(collections.map(c =>
+      c.id === id ? { ...c, headers: newHeaders, updatedAt: Date.now() } : c
+    ));
+  };
+
+  const updateCollectionVariables = (id: string, newVariables: KeyValue[]) => {
+    saveCollections(collections.map(c =>
+      c.id === id ? { ...c, variables: newVariables, updatedAt: Date.now() } : c
+    ));
+  };
+
+  const exportCollection = async (id: string) => {
+    const collection = collections.find(c => c.id === id);
+    if (!collection) return;
+
+    try {
+      const filePath = await save({
+        defaultPath: `${collection.name}.json`,
+        filters: [{ name: 'JSON', extensions: ['json'] }],
+      });
+      if (filePath) {
+        await writeTextFile(filePath, JSON.stringify(collection, null, 2));
+      }
+    } catch (err) {
+      console.error('Failed to export collection:', err);
+    }
+  };
+
+  const importCollection = async () => {
+    try {
+      const filePath = await open({
+        filters: [{ name: 'JSON', extensions: ['json'] }],
+        multiple: false,
+      });
+      if (filePath) {
+        const content = await readTextFile(filePath as string);
+        const imported = JSON.parse(content) as Collection;
+        // Give it a new ID to avoid conflicts
+        imported.id = Date.now().toString();
+        imported.createdAt = Date.now();
+        imported.updatedAt = Date.now();
+        saveCollections([...collections, imported]);
+      }
+    } catch (err) {
+      console.error('Failed to import collection:', err);
+    }
+  };
 
 
 
-
-  // Load theme and history from localStorage on mount
+  // Load theme, history, and collections from localStorage on mount
   useEffect(() => {
     const savedHistory = localStorage.getItem("badrest-history");
     if (savedHistory) {
@@ -218,6 +549,15 @@ function App() {
         setHistory(JSON.parse(savedHistory));
       } catch (e) {
         console.error('Failed to load history:', e);
+      }
+    }
+
+    const savedCollections = localStorage.getItem("badrest-collections");
+    if (savedCollections) {
+      try {
+        setCollections(JSON.parse(savedCollections));
+      } catch (e) {
+        console.error('Failed to load collections:', e);
       }
     }
 
@@ -250,6 +590,20 @@ function App() {
     document.documentElement.setAttribute("data-theme", theme);
     localStorage.setItem("badrest-theme", theme);
   }, [theme]);
+
+  // Cmd+W closes current tab instead of window
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === "w") {
+        e.preventDefault();
+        if (tabs.length > 1) {
+          closeTab(activeTabId);
+        }
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [tabs, activeTabId]);
 
   // Auto-save current tab when state changes
   useEffect(() => {
@@ -419,6 +773,13 @@ function App() {
         </div>
         <div className="header-actions">
           <button
+            className={`collections-toggle ${showCollections ? 'active' : ''}`}
+            onClick={() => setShowCollections(!showCollections)}
+            title="Toggle Collections"
+          >
+            📁 Collections
+          </button>
+          <button
             className="history-toggle"
             onClick={() => setShowHistory(!showHistory)}
             title="Request History"
@@ -460,17 +821,36 @@ function App() {
         </div>
       )}
 
+      <div className="app-body">
+        {showCollections && (
+          <CollectionsSidebar
+            collections={collections}
+            onCreateCollection={createCollection}
+            onRenameCollection={renameCollection}
+            onDeleteCollection={deleteCollection}
+            onToggleCollapsed={toggleCollectionCollapsed}
+            onSaveRequest={saveRequestToCollection}
+            onOpenRequest={openRequestFromCollection}
+            onRemoveRequest={removeRequestFromCollection}
+            onReorderRequest={reorderRequest}
+            onUpdateHeaders={updateCollectionHeaders}
+            onUpdateVariables={updateCollectionVariables}
+            onExportCollection={exportCollection}
+            onImportCollection={importCollection}
+          />
+        )}
       <div className="main-content">
         {/* Request Panel */}
         <div className="request-panel">
           {/* Tab Bar */}
           <div className="tab-bar">
-            <div className="tab-list">
-              {tabs.map((tab) => (
+            <div className="tab-list" ref={tabListRef}>
+              {tabs.map((tab, index) => (
                 <div
                   key={tab.id}
-                  className={`request-tab ${tab.id === activeTabId ? 'active' : ''}`}
-                  onClick={() => switchTab(tab.id)}
+                  className={`request-tab ${tab.id === activeTabId ? 'active' : ''} ${tabDragFrom !== null && tabDragOver === index && tabDragFrom !== index ? 'tab-drop-target' : ''} ${tabDragFrom === index ? 'tab-dragging' : ''}`}
+                  onClick={() => { if (tabDragFrom === null) switchTab(tab.id); }}
+                  onMouseDown={(e) => handleTabMouseDown(index, e)}
                 >
                   <span className="tab-method-badge">{tab.method}</span>
                   <span className="tab-url">{tab.url || 'New Request'}</span>
@@ -517,6 +897,16 @@ function App() {
                 onChange={(e) => setUrl(e.target.value)}
                 placeholder="Enter request URL..."
               />
+
+              {tabs.find(t => t.id === activeTabId)?.collectionRequestId && (
+                <button
+                  className={`save-collection-btn ${savedToCollection ? 'saved' : ''}`}
+                  onClick={saveTabToCollection}
+                  title="Save changes to collection"
+                >
+                  {savedToCollection ? '✓' : '💾'}
+                </button>
+              )}
 
               <button
                 className="send-button"
@@ -757,6 +1147,7 @@ function App() {
             </div>
           )}
         </div>
+      </div>
       </div>
     </div>
   );

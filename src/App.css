@@ -125,6 +125,14 @@ body {
   transform: scale(0.95) rotate(15deg);
 }
 
+/* App Body (sidebar + main content) */
+.app-body {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+  position: relative;
+}
+
 /* Main Content */
 .main-content {
   display: flex;
@@ -214,6 +222,36 @@ body {
 
 .url-input::placeholder {
   color: var(--text-muted);
+}
+
+.save-collection-btn {
+  padding: 10px 12px;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  color: var(--text-secondary);
+  font-size: 16px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.save-collection-btn:hover {
+  background: var(--bg-primary);
+  border-color: var(--accent-primary);
+  color: var(--accent-primary);
+}
+
+.save-collection-btn:active {
+  transform: scale(0.95);
+}
+
+.save-collection-btn.saved {
+  background: var(--accent-primary);
+  border-color: var(--accent-primary);
+  color: white;
 }
 
 .send-button {
@@ -702,6 +740,13 @@ body {
   color: var(--text-muted);
   margin: 0 4px;
   font-style: italic;
+}
+
+/* Header Actions */
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
 /* Responsive Design */
