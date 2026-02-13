@@ -3,7 +3,7 @@
 A beautiful, modern, and lightweight REST API Client built with Tauri v2, React, and TypeScript.
 Designed to be a fast and efficient alternative to Postman/Insomnia.
 
-![BadRest Screenshot](screenshot.png)
+![BadRest Screenshot](screenshot2.png)
 
 ## 🚀 Features
 
