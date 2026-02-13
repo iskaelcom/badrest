@@ -111,6 +111,16 @@
 /* Collection item */
 .collection-item {
   border-bottom: 1px solid var(--border-color);
+  transition: opacity 0.15s ease;
+}
+
+.collection-item.collection-drop-target {
+  border-top: 2px solid var(--accent-primary);
+  background: var(--bg-tertiary);
+}
+
+.collection-item.collection-dragging {
+  opacity: 0.35;
 }
 
 .collection-header {
@@ -118,7 +128,8 @@
   align-items: center;
   gap: 6px;
   padding: 8px 12px;
-  cursor: default;
+  cursor: grab;
+  user-select: none;
 }
 
 .collection-header:hover .collection-actions {

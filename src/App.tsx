@@ -121,6 +121,12 @@ function App() {
   const [collections, setCollections] = useState<Collection[]>([]);
   const [showCollections, setShowCollections] = useState(false);
 
+  // Confirm dialog state
+  const [confirmDialog, setConfirmDialog] = useState<{
+    message: string;
+    onConfirm: () => void;
+  } | null>(null);
+
 
 
   // Tab management functions
@@ -376,7 +382,23 @@ function App() {
   };
 
   const deleteCollection = (id: string) => {
-    saveCollections(collections.filter(c => c.id !== id));
+    const collection = collections.find(c => c.id === id);
+    const name = collection?.name || "this collection";
+    setConfirmDialog({
+      message: `Delete "${name}"? This cannot be undone.`,
+      onConfirm: () => {
+        saveCollections(collections.filter(c => c.id !== id));
+        setConfirmDialog(null);
+      },
+    });
+  };
+
+  const reorderCollections = (fromIndex: number, toIndex: number) => {
+    if (fromIndex === toIndex) return;
+    const reordered = [...collections];
+    const [moved] = reordered.splice(fromIndex, 1);
+    reordered.splice(toIndex, 0, moved);
+    saveCollections(reordered);
   };
 
   const toggleCollectionCollapsed = (id: string) => {
@@ -894,6 +916,7 @@ function App() {
             onUpdateVariables={updateCollectionVariables}
             onExportCollection={exportCollection}
             onImportCollection={importCollection}
+            onReorderCollections={reorderCollections}
           />
         )}
       <div className="main-content">
@@ -1234,6 +1257,29 @@ function App() {
         </div>
       </div>
       </div>
+
+      {/* Confirm Dialog */}
+      {confirmDialog && (
+        <div className="confirm-overlay" onClick={() => setConfirmDialog(null)}>
+          <div className="confirm-dialog" onClick={(e) => e.stopPropagation()}>
+            <p className="confirm-message">{confirmDialog.message}</p>
+            <div className="confirm-actions">
+              <button
+                className="confirm-cancel-btn"
+                onClick={() => setConfirmDialog(null)}
+              >
+                Cancel
+              </button>
+              <button
+                className="confirm-delete-btn"
+                onClick={confirmDialog.onConfirm}
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

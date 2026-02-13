@@ -21,6 +21,7 @@ interface CollectionsSidebarProps {
   onUpdateVariables: (id: string, variables: KeyValue[]) => void;
   onExportCollection: (id: string) => void;
   onImportCollection: () => void;
+  onReorderCollections: (fromIndex: number, toIndex: number) => void;
 }
 
 const METHOD_COLORS: Record<string, string> = {
@@ -48,6 +49,7 @@ export function CollectionsSidebar({
   onUpdateVariables,
   onExportCollection,
   onImportCollection,
+  onReorderCollections,
 }: CollectionsSidebarProps) {
   const [newCollectionName, setNewCollectionName] = useState("");
   const [showNewInput, setShowNewInput] = useState(false);
@@ -62,6 +64,11 @@ export function CollectionsSidebar({
   const dragRef = useRef<{ collectionId: string; index: number; startY: number } | null>(null);
   const [dragFrom, setDragFrom] = useState<{ collectionId: string; index: number } | null>(null);
   const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
+
+  // Mouse-based drag state for collection reordering
+  const colDragRef = useRef<{ index: number; startY: number } | null>(null);
+  const [colDragFrom, setColDragFrom] = useState<number | null>(null);
+  const [colDragOver, setColDragOver] = useState<number | null>(null);
 
   const handleCreateCollection = () => {
     if (newCollectionName.trim()) {
@@ -133,6 +140,55 @@ export function CollectionsSidebar({
       window.removeEventListener('mouseup', handleMouseUp);
     };
   }, [dragFrom, dragOverIndex, onReorderRequest]);
+
+  const handleCollectionMouseDown = (index: number, e: React.MouseEvent) => {
+    if ((e.target as HTMLElement).closest('.collection-action-btn-small')) return;
+    if ((e.target as HTMLElement).closest('.collection-toggle')) return;
+    if ((e.target as HTMLElement).closest('.collection-rename-input')) return;
+    e.preventDefault();
+    colDragRef.current = { index, startY: e.clientY };
+  };
+
+  useEffect(() => {
+    const THRESHOLD = 6;
+
+    const handleMouseMove = (e: MouseEvent) => {
+      if (!colDragRef.current) return;
+
+      if (colDragFrom === null) {
+        if (Math.abs(e.clientY - colDragRef.current.startY) >= THRESHOLD) {
+          setColDragFrom(colDragRef.current.index);
+        }
+        return;
+      }
+
+      const items = document.querySelectorAll('.collection-item');
+      let hoverIdx: number | null = null;
+      items.forEach((el, i) => {
+        const rect = el.getBoundingClientRect();
+        if (e.clientY >= rect.top && e.clientY <= rect.bottom) {
+          hoverIdx = i;
+        }
+      });
+      setColDragOver(hoverIdx);
+    };
+
+    const handleMouseUp = () => {
+      if (colDragFrom !== null && colDragOver !== null && colDragFrom !== colDragOver) {
+        onReorderCollections(colDragFrom, colDragOver);
+      }
+      colDragRef.current = null;
+      setColDragFrom(null);
+      setColDragOver(null);
+    };
+
+    window.addEventListener('mousemove', handleMouseMove);
+    window.addEventListener('mouseup', handleMouseUp);
+    return () => {
+      window.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener('mouseup', handleMouseUp);
+    };
+  }, [colDragFrom, colDragOver, onReorderCollections]);
 
   const handleStartRenameRequest = (collectionId: string, request: { id: string; name: string; url: string }) => {
     setRenamingRequestId(request.id);
@@ -212,9 +268,15 @@ export function CollectionsSidebar({
           </div>
         )}
 
-        {collections.map((collection) => (
-          <div key={collection.id} className="collection-item">
-            <div className="collection-header">
+        {collections.map((collection, colIndex) => (
+          <div
+            key={collection.id}
+            className={`collection-item ${colDragFrom !== null && colDragOver === colIndex && colDragFrom !== colIndex ? 'collection-drop-target' : ''} ${colDragFrom === colIndex ? 'collection-dragging' : ''}`}
+          >
+            <div
+              className="collection-header"
+              onMouseDown={(e) => handleCollectionMouseDown(colIndex, e)}
+            >
               <button
                 className="collection-toggle"
                 onClick={() => onToggleCollapsed(collection.id)}
@@ -270,11 +332,7 @@ export function CollectionsSidebar({
                 </button>
                 <button
                   className="collection-action-btn-small delete"
-                  onClick={() => {
-                    if (confirm(`Delete "${collection.name}"?`)) {
-                      onDeleteCollection(collection.id);
-                    }
-                  }}
+                  onClick={() => onDeleteCollection(collection.id)}
                   title="Delete"
                 >
                   ×
