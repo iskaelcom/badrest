@@ -153,6 +153,10 @@ function App() {
   const resizeRef = useRef<{ startX: number; startWidth: number } | null>(null);
   const mainContentRef = useRef<HTMLDivElement>(null);
 
+  // Method dropdown state
+  const [showMethodDropdown, setShowMethodDropdown] = useState(false);
+  const methodDropdownRef = useRef<HTMLDivElement>(null);
+
 
 
   // Tab management functions
@@ -1082,11 +1086,11 @@ function App() {
   return (
     <div className="app">
       <header className="header">
-        <div className="logo">
-          <img src={logo} alt="BadRest Logo" className="logo-icon" />
-          <h1>BadRest</h1>
-        </div>
-        <div className="header-actions">
+        <div className="header-left">
+          <div className="logo">
+            <img src={logo} alt="BadRest Logo" className="logo-icon" />
+            <h1>BadRest</h1>
+          </div>
           <button
             className={`collections-toggle ${showCollections ? 'active' : ''}`}
             onClick={() => setShowCollections(!showCollections)}
@@ -1094,6 +1098,8 @@ function App() {
           >
             📁 Collections
           </button>
+        </div>
+        <div className="header-actions">
           <button
             className="history-toggle"
             onClick={() => setShowHistory(!showHistory)}
@@ -1236,19 +1242,33 @@ function App() {
 
             <div className="request-builder">
               <div className="url-bar">
-                <select
-                  className="method-select"
-                  value={method}
-                  onChange={(e) => setMethod(e.target.value)}
-                >
-                  <option value="GET">GET</option>
-                  <option value="POST">POST</option>
-                  <option value="PUT">PUT</option>
-                  <option value="DELETE">DELETE</option>
-                  <option value="PATCH">PATCH</option>
-                  <option value="HEAD">HEAD</option>
-                  <option value="OPTIONS">OPTIONS</option>
-                </select>
+                <div className="method-dropdown" ref={methodDropdownRef}>
+                  <button
+                    className="method-select"
+                    onClick={() => setShowMethodDropdown(!showMethodDropdown)}
+                    type="button"
+                  >
+                    {method}
+                    <span className="method-caret">▼</span>
+                  </button>
+                  {showMethodDropdown && (
+                    <div className="method-dropdown-menu">
+                      {['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'HEAD', 'OPTIONS'].map((m) => (
+                        <button
+                          key={m}
+                          className={`method-dropdown-item ${m === method ? 'active' : ''}`}
+                          onClick={() => {
+                            setMethod(m);
+                            setShowMethodDropdown(false);
+                          }}
+                          type="button"
+                        >
+                          {m}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
 
                 <textarea
                   className="url-input"
