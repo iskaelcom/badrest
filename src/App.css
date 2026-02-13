@@ -147,6 +147,7 @@ body {
   border-right: 1px solid var(--border-color);
   overflow: hidden;
   min-width: 320px;
+  min-height: 300px;
 }
 
 .response-panel {

@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import logo from "./assets/badrest_logo.png";
+import logo from "./assets/badrest1_rounded.png";
 import { invoke } from "@tauri-apps/api/core";
 import { save, open } from "@tauri-apps/plugin-dialog";
 import { writeTextFile, readTextFile } from "@tauri-apps/plugin-fs";
@@ -1160,347 +1160,347 @@ function App() {
             onReorderCollections={reorderCollections}
           />
         )}
-      <div className="main-content" ref={mainContentRef}>
-        {/* Request Panel */}
-        <div className="request-panel" style={requestPanelWidth ? { width: requestPanelWidth, flex: 'none' } : undefined}>
-          {/* Tab Bar */}
-          <div className="tab-bar">
-            <div className="tab-list" ref={tabListRef}>
-              {tabs.map((tab, index) => (
-                <div
-                  key={tab.id}
-                  className={`request-tab ${tab.id === activeTabId ? 'active' : ''} ${tabDragFrom !== null && tabDragOver === index && tabDragFrom !== index ? 'tab-drop-target' : ''} ${tabDragFrom === index ? 'tab-dragging' : ''}`}
-                  onClick={() => { if (tabDragFrom === null) switchTab(tab.id); }}
-                  onMouseDown={(e) => handleTabMouseDown(index, e)}
-                  onContextMenu={(e) => {
-                    e.preventDefault();
-                    setTabContextMenu({ x: e.clientX, y: e.clientY, tabId: tab.id });
-                  }}
-                >
-                  <span className="tab-method-badge" style={{ background: METHOD_COLORS[tab.method] || "#71717a" }}>{tab.method}</span>
-                  {tab.collectionDirty && <span className="tab-dirty-dot" title="Unsaved changes (Cmd+S to save)" />}
-                  {renamingTabId === tab.id ? (
-                    <input
-                      className="tab-rename-input"
-                      type="text"
-                      value={renamingTabName}
-                      onChange={(e) => setRenamingTabName(e.target.value)}
-                      onKeyDown={(e) => {
-                        if (e.key === "Enter") finishTabRename();
-                        if (e.key === "Escape") {
-                          setRenamingTabId(null);
-                          setRenamingTabName("");
-                        }
-                      }}
-                      onBlur={finishTabRename}
-                      onClick={(e) => e.stopPropagation()}
-                      onMouseDown={(e) => e.stopPropagation()}
-                      autoFocus
-                    />
-                  ) : (
-                    <span
-                      className="tab-url"
-                      onDoubleClick={(e) => {
-                        e.stopPropagation();
-                        startTabRename(tab);
-                      }}
-                    >
-                      {tab.name && tab.name !== tab.url ? tab.name : (tab.url || 'New Request')}
-                    </span>
-                  )}
-                  {tabs.length > 1 && (
-                    <button
-                      className="tab-close"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        closeTab(tab.id);
-                      }}
-                      title="Close tab"
-                    >
-                      ×
-                    </button>
-                  )}
-                </div>
-              ))}
-            </div>
-            <button className="new-tab-btn" onClick={createNewTab} title="New tab">
-              +
-            </button>
-          </div>
-
-          <div className="request-builder">
-            <div className="url-bar">
-              <select
-                className="method-select"
-                value={method}
-                onChange={(e) => setMethod(e.target.value)}
-              >
-                <option value="GET">GET</option>
-                <option value="POST">POST</option>
-                <option value="PUT">PUT</option>
-                <option value="DELETE">DELETE</option>
-                <option value="PATCH">PATCH</option>
-                <option value="HEAD">HEAD</option>
-                <option value="OPTIONS">OPTIONS</option>
-              </select>
-
-              <textarea
-                className="url-input"
-                value={url}
-                onChange={(e) => setUrl(e.target.value)}
-                placeholder="Enter request URL..."
-                rows={1}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") {
-                    e.preventDefault();
-                    sendRequest();
-                  }
-                }}
-              />
-
-              <button
-                className="send-button"
-                onClick={sendRequest}
-                disabled={loading || !url}
-              >
-                {loading ? "Sending..." : "Send"}
+        <div className="main-content" ref={mainContentRef}>
+          {/* Request Panel */}
+          <div className="request-panel" style={requestPanelWidth ? { width: requestPanelWidth, flex: 'none' } : undefined}>
+            {/* Tab Bar */}
+            <div className="tab-bar">
+              <div className="tab-list" ref={tabListRef}>
+                {tabs.map((tab, index) => (
+                  <div
+                    key={tab.id}
+                    className={`request-tab ${tab.id === activeTabId ? 'active' : ''} ${tabDragFrom !== null && tabDragOver === index && tabDragFrom !== index ? 'tab-drop-target' : ''} ${tabDragFrom === index ? 'tab-dragging' : ''}`}
+                    onClick={() => { if (tabDragFrom === null) switchTab(tab.id); }}
+                    onMouseDown={(e) => handleTabMouseDown(index, e)}
+                    onContextMenu={(e) => {
+                      e.preventDefault();
+                      setTabContextMenu({ x: e.clientX, y: e.clientY, tabId: tab.id });
+                    }}
+                  >
+                    <span className="tab-method-badge" style={{ background: METHOD_COLORS[tab.method] || "#71717a" }}>{tab.method}</span>
+                    {tab.collectionDirty && <span className="tab-dirty-dot" title="Unsaved changes (Cmd+S to save)" />}
+                    {renamingTabId === tab.id ? (
+                      <input
+                        className="tab-rename-input"
+                        type="text"
+                        value={renamingTabName}
+                        onChange={(e) => setRenamingTabName(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter") finishTabRename();
+                          if (e.key === "Escape") {
+                            setRenamingTabId(null);
+                            setRenamingTabName("");
+                          }
+                        }}
+                        onBlur={finishTabRename}
+                        onClick={(e) => e.stopPropagation()}
+                        onMouseDown={(e) => e.stopPropagation()}
+                        autoFocus
+                      />
+                    ) : (
+                      <span
+                        className="tab-url"
+                        onDoubleClick={(e) => {
+                          e.stopPropagation();
+                          startTabRename(tab);
+                        }}
+                      >
+                        {tab.name && tab.name !== tab.url ? tab.name : (tab.url || 'New Request')}
+                      </span>
+                    )}
+                    {tabs.length > 1 && (
+                      <button
+                        className="tab-close"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          closeTab(tab.id);
+                        }}
+                        title="Close tab"
+                      >
+                        ×
+                      </button>
+                    )}
+                  </div>
+                ))}
+              </div>
+              <button className="new-tab-btn" onClick={createNewTab} title="New tab">
+                +
               </button>
             </div>
-          </div>
 
-          <div className="tabs">
-            <button
-              className={`tab ${activeTab === "params" ? "active" : ""}`}
-              onClick={() => setActiveTab("params")}
-            >
-              Params
-            </button>
-            <button
-              className={`tab ${activeTab === "headers" ? "active" : ""}`}
-              onClick={() => setActiveTab("headers")}
-            >
-              Headers
-            </button>
-            <button
-              className={`tab ${activeTab === "body" ? "active" : ""}`}
-              onClick={() => setActiveTab("body")}
-            >
-              Body
-            </button>
-          </div>
+            <div className="request-builder">
+              <div className="url-bar">
+                <select
+                  className="method-select"
+                  value={method}
+                  onChange={(e) => setMethod(e.target.value)}
+                >
+                  <option value="GET">GET</option>
+                  <option value="POST">POST</option>
+                  <option value="PUT">PUT</option>
+                  <option value="DELETE">DELETE</option>
+                  <option value="PATCH">PATCH</option>
+                  <option value="HEAD">HEAD</option>
+                  <option value="OPTIONS">OPTIONS</option>
+                </select>
 
-          <div className="tab-content">
-            {activeTab === "params" && (
-              <div className="key-value-editor">
-                {params.map((param, index) => (
-                  <div key={index} className="key-value-row">
-                    <input
-                      type="text"
-                      className="key-value-input"
-                      placeholder="Key"
-                      value={param.key}
-                      onChange={(e) => updateParam(index, "key", e.target.value)}
-                    />
-                    <input
-                      type="text"
-                      className="key-value-input"
-                      placeholder="Value"
-                      value={param.value}
-                      onChange={(e) => updateParam(index, "value", e.target.value)}
-                    />
-                    <button
-                      className="remove-button"
-                      onClick={() => removeParam(index)}
-                    >
-                      ✕
-                    </button>
-                  </div>
-                ))}
-                <button className="add-button" onClick={addParam}>
-                  + Add Parameter
-                </button>
-              </div>
-            )}
-
-            {activeTab === "headers" && (
-              <div className="key-value-editor">
-                {headers.map((header, index) => (
-                  <div key={index} className="key-value-row">
-                    <input
-                      type="text"
-                      className="key-value-input"
-                      placeholder="Header Name"
-                      value={header.key}
-                      onChange={(e) => updateHeader(index, "key", e.target.value)}
-                    />
-                    <input
-                      type="text"
-                      className="key-value-input"
-                      placeholder="Header Value"
-                      value={header.value}
-                      onChange={(e) => updateHeader(index, "value", e.target.value)}
-                    />
-                    <button
-                      className="remove-button"
-                      onClick={() => removeHeader(index)}
-                    >
-                      ✕
-                    </button>
-                  </div>
-                ))}
-                <button className="add-button" onClick={addHeader}>
-                  + Add Header
-                </button>
-              </div>
-            )}
-
-            {activeTab === "body" && (
-              <div className="body-editor">
-                <div className="body-type-selector">
-                  <button
-                    className={`body-type-button ${bodyType === "none" ? "active" : ""}`}
-                    onClick={() => setBodyType("none")}
-                  >
-                    None
-                  </button>
-                  <button
-                    className={`body-type-button ${bodyType === "json" ? "active" : ""}`}
-                    onClick={() => setBodyType("json")}
-                  >
-                    JSON
-                  </button>
-                  <button
-                    className={`body-type-button ${bodyType === "text" ? "active" : ""}`}
-                    onClick={() => setBodyType("text")}
-                  >
-                    Text
-                  </button>
-                  <button
-                    className={`body-type-button ${bodyType === "form" ? "active" : ""}`}
-                    onClick={() => setBodyType("form")}
-                  >
-                    Form
-                  </button>
-                </div>
-
-                {bodyType !== "none" && (
-                  <textarea
-                    className="body-textarea"
-                    value={bodyContent}
-                    onChange={(e) => setBodyContent(e.target.value)}
-                    placeholder={
-                      bodyType === "json"
-                        ? '{\n  "key": "value"\n}'
-                        : bodyType === "form"
-                          ? "key1=value1&key2=value2"
-                          : "Enter request body..."
+                <textarea
+                  className="url-input"
+                  value={url}
+                  onChange={(e) => setUrl(e.target.value)}
+                  placeholder="Enter request URL..."
+                  rows={1}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      e.preventDefault();
+                      sendRequest();
                     }
-                  />
-                )}
+                  }}
+                />
+
+                <button
+                  className="send-button"
+                  onClick={sendRequest}
+                  disabled={loading || !url}
+                >
+                  {loading ? "Sending..." : "Send"}
+                </button>
+              </div>
+            </div>
+
+            <div className="tabs">
+              <button
+                className={`tab ${activeTab === "params" ? "active" : ""}`}
+                onClick={() => setActiveTab("params")}
+              >
+                Params
+              </button>
+              <button
+                className={`tab ${activeTab === "headers" ? "active" : ""}`}
+                onClick={() => setActiveTab("headers")}
+              >
+                Headers
+              </button>
+              <button
+                className={`tab ${activeTab === "body" ? "active" : ""}`}
+                onClick={() => setActiveTab("body")}
+              >
+                Body
+              </button>
+            </div>
+
+            <div className="tab-content">
+              {activeTab === "params" && (
+                <div className="key-value-editor">
+                  {params.map((param, index) => (
+                    <div key={index} className="key-value-row">
+                      <input
+                        type="text"
+                        className="key-value-input"
+                        placeholder="Key"
+                        value={param.key}
+                        onChange={(e) => updateParam(index, "key", e.target.value)}
+                      />
+                      <input
+                        type="text"
+                        className="key-value-input"
+                        placeholder="Value"
+                        value={param.value}
+                        onChange={(e) => updateParam(index, "value", e.target.value)}
+                      />
+                      <button
+                        className="remove-button"
+                        onClick={() => removeParam(index)}
+                      >
+                        ✕
+                      </button>
+                    </div>
+                  ))}
+                  <button className="add-button" onClick={addParam}>
+                    + Add Parameter
+                  </button>
+                </div>
+              )}
+
+              {activeTab === "headers" && (
+                <div className="key-value-editor">
+                  {headers.map((header, index) => (
+                    <div key={index} className="key-value-row">
+                      <input
+                        type="text"
+                        className="key-value-input"
+                        placeholder="Header Name"
+                        value={header.key}
+                        onChange={(e) => updateHeader(index, "key", e.target.value)}
+                      />
+                      <input
+                        type="text"
+                        className="key-value-input"
+                        placeholder="Header Value"
+                        value={header.value}
+                        onChange={(e) => updateHeader(index, "value", e.target.value)}
+                      />
+                      <button
+                        className="remove-button"
+                        onClick={() => removeHeader(index)}
+                      >
+                        ✕
+                      </button>
+                    </div>
+                  ))}
+                  <button className="add-button" onClick={addHeader}>
+                    + Add Header
+                  </button>
+                </div>
+              )}
+
+              {activeTab === "body" && (
+                <div className="body-editor">
+                  <div className="body-type-selector">
+                    <button
+                      className={`body-type-button ${bodyType === "none" ? "active" : ""}`}
+                      onClick={() => setBodyType("none")}
+                    >
+                      None
+                    </button>
+                    <button
+                      className={`body-type-button ${bodyType === "json" ? "active" : ""}`}
+                      onClick={() => setBodyType("json")}
+                    >
+                      JSON
+                    </button>
+                    <button
+                      className={`body-type-button ${bodyType === "text" ? "active" : ""}`}
+                      onClick={() => setBodyType("text")}
+                    >
+                      Text
+                    </button>
+                    <button
+                      className={`body-type-button ${bodyType === "form" ? "active" : ""}`}
+                      onClick={() => setBodyType("form")}
+                    >
+                      Form
+                    </button>
+                  </div>
+
+                  {bodyType !== "none" && (
+                    <textarea
+                      className="body-textarea"
+                      value={bodyContent}
+                      onChange={(e) => setBodyContent(e.target.value)}
+                      placeholder={
+                        bodyType === "json"
+                          ? '{\n  "key": "value"\n}'
+                          : bodyType === "form"
+                            ? "key1=value1&key2=value2"
+                            : "Enter request body..."
+                      }
+                    />
+                  )}
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Resize Handle */}
+          <div className="resize-handle" onMouseDown={handleResizeMouseDown} />
+
+          {/* Response Panel */}
+          <div className="response-panel">
+            {response ? (
+              <div className="response-viewer">
+                <div className="response-header">
+                  <div className="response-status">
+                    <span className={`status-badge ${getStatusClass(response.status)}`}>
+                      {response.status} {response.status_text}
+                    </span>
+                    <span className="response-meta">
+                      Time: {response.duration_ms}ms
+                    </span>
+                    <span className="response-meta">
+                      Size: {new Blob([response.body]).size} bytes
+                    </span>
+                  </div>
+                </div>
+
+                <div className="tabs">
+                  <button
+                    className={`tab ${responseTab === "body" ? "active" : ""}`}
+                    onClick={() => setResponseTab("body")}
+                  >
+                    Body
+                  </button>
+                  <button
+                    className={`tab ${responseTab === "headers" ? "active" : ""}`}
+                    onClick={() => setResponseTab("headers")}
+                  >
+                    Headers ({Object.keys(response.headers).length})
+                  </button>
+                  <button
+                    className="copy-button"
+                    onClick={copyToClipboard}
+                    title="Copy response body"
+                  >
+                    {copied ? '✓ Copied!' : '📋 Copy'}
+                  </button>
+                  <button
+                    className="save-button"
+                    onClick={saveJsonToFile}
+                    title="Save JSON to file"
+                  >
+                    💾 Save
+                  </button>
+                </div>
+
+                <div className="response-body">
+                  {responseTab === "body" && (
+                    <div className="json-tree-container">
+                      {(() => {
+                        try {
+                          console.log('Response body:', response.body);
+                          const parsed = JSON.parse(response.body);
+                          console.log('Parsed JSON:', parsed);
+                          return <JsonViewer data={parsed} />;
+                        } catch (e) {
+                          console.log('JSON parse error, showing raw:', e);
+                          return <pre className="response-content">{response.body}</pre>;
+                        }
+                      })()}
+                    </div>
+                  )}
+
+                  {responseTab === "headers" && (
+                    <div className="headers-list">
+                      {Object.entries(response.headers).map(([key, value]) => (
+                        <div key={key} className="header-item">
+                          <span className="header-key">{key}:</span>
+                          <span className="header-value">{value}</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+            ) : error ? (
+              <div className="empty-state">
+                <div className="empty-state-icon">⚠️</div>
+                <div className="empty-state-text">Error: {error}</div>
+              </div>
+            ) : loading ? (
+              <div className="empty-state">
+                <div className="spinner"></div>
+                <div className="empty-state-text">Sending request...</div>
+              </div>
+            ) : (
+              <div className="empty-state">
+                <div className="empty-state-icon">🚀</div>
+                <div className="empty-state-text">
+                  Enter a URL and click Send to get started
+                </div>
               </div>
             )}
           </div>
         </div>
-
-        {/* Resize Handle */}
-        <div className="resize-handle" onMouseDown={handleResizeMouseDown} />
-
-        {/* Response Panel */}
-        <div className="response-panel">
-          {response ? (
-            <div className="response-viewer">
-              <div className="response-header">
-                <div className="response-status">
-                  <span className={`status-badge ${getStatusClass(response.status)}`}>
-                    {response.status} {response.status_text}
-                  </span>
-                  <span className="response-meta">
-                    Time: {response.duration_ms}ms
-                  </span>
-                  <span className="response-meta">
-                    Size: {new Blob([response.body]).size} bytes
-                  </span>
-                </div>
-              </div>
-
-              <div className="tabs">
-                <button
-                  className={`tab ${responseTab === "body" ? "active" : ""}`}
-                  onClick={() => setResponseTab("body")}
-                >
-                  Body
-                </button>
-                <button
-                  className={`tab ${responseTab === "headers" ? "active" : ""}`}
-                  onClick={() => setResponseTab("headers")}
-                >
-                  Headers ({Object.keys(response.headers).length})
-                </button>
-                <button
-                  className="copy-button"
-                  onClick={copyToClipboard}
-                  title="Copy response body"
-                >
-                  {copied ? '✓ Copied!' : '📋 Copy'}
-                </button>
-                <button
-                  className="save-button"
-                  onClick={saveJsonToFile}
-                  title="Save JSON to file"
-                >
-                  💾 Save
-                </button>
-              </div>
-
-              <div className="response-body">
-                {responseTab === "body" && (
-                  <div className="json-tree-container">
-                    {(() => {
-                      try {
-                        console.log('Response body:', response.body);
-                        const parsed = JSON.parse(response.body);
-                        console.log('Parsed JSON:', parsed);
-                        return <JsonViewer data={parsed} />;
-                      } catch (e) {
-                        console.log('JSON parse error, showing raw:', e);
-                        return <pre className="response-content">{response.body}</pre>;
-                      }
-                    })()}
-                  </div>
-                )}
-
-                {responseTab === "headers" && (
-                  <div className="headers-list">
-                    {Object.entries(response.headers).map(([key, value]) => (
-                      <div key={key} className="header-item">
-                        <span className="header-key">{key}:</span>
-                        <span className="header-value">{value}</span>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-            </div>
-          ) : error ? (
-            <div className="empty-state">
-              <div className="empty-state-icon">⚠️</div>
-              <div className="empty-state-text">Error: {error}</div>
-            </div>
-          ) : loading ? (
-            <div className="empty-state">
-              <div className="spinner"></div>
-              <div className="empty-state-text">Sending request...</div>
-            </div>
-          ) : (
-            <div className="empty-state">
-              <div className="empty-state-icon">🚀</div>
-              <div className="empty-state-text">
-                Enter a URL and click Send to get started
-              </div>
-            </div>
-          )}
-        </div>
-      </div>
       </div>
 
       {/* Tab Context Menu */}
