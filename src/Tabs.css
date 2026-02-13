@@ -94,6 +94,14 @@
     flex-shrink: 0;
 }
 
+.tab-dirty-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--error);
+    flex-shrink: 0;
+}
+
 .tab-url {
     flex: 1;
     font-size: 12px;

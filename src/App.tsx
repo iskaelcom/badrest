@@ -54,6 +54,7 @@ interface RequestTab {
   error: string | null;
   collectionRequestId?: string;
   collectionId?: string;
+  collectionDirty?: boolean;
 }
 
 export interface SavedRequest {
@@ -104,6 +105,7 @@ function App() {
   // Refs
   const tabListRef = useRef<HTMLDivElement>(null);
   const tabDragState = useRef<{ index: number; startX: number } | null>(null);
+  const loadingTabRef = useRef(false);
   const [tabDragFrom, setTabDragFrom] = useState<number | null>(null);
   const [tabDragOver, setTabDragOver] = useState<number | null>(null);
 
@@ -113,7 +115,6 @@ function App() {
 
   // UI state
   const [copied, setCopied] = useState(false);
-  const [savedToCollection, setSavedToCollection] = useState(false);
   const [history, setHistory] = useState<HistoryItem[]>([]);
   const [showHistory, setShowHistory] = useState(false);
 
@@ -153,6 +154,7 @@ function App() {
   };
 
   const loadTabState = (tab: RequestTab) => {
+    loadingTabRef.current = true;
     setMethod(tab.method);
     setUrl(tab.url);
     setActiveTab(tab.activeTab);
@@ -435,7 +437,15 @@ function App() {
     // Check if this collection request is already open in an existing tab
     const existingTab = tabs.find(t => t.collectionRequestId === requestId);
     if (existingTab) {
-      switchTab(existingTab.id);
+      if (existingTab.id !== activeTabId) {
+        switchTab(existingTab.id);
+      }
+      // Scroll the tab into view
+      requestAnimationFrame(() => {
+        const tabIndex = tabs.findIndex(t => t.id === existingTab.id);
+        const tabEl = tabListRef.current?.children[tabIndex] as HTMLElement | undefined;
+        tabEl?.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'nearest' });
+      });
       return;
     }
 
@@ -473,6 +483,7 @@ function App() {
       error: null,
       collectionRequestId: requestId,
       collectionId: collectionId,
+      collectionDirty: false,
     };
 
     const updatedTabs = [...tabs, newTab];
@@ -510,7 +521,6 @@ function App() {
           if (r.id !== currentTab.collectionRequestId) return r;
           return {
             ...r,
-            name: url || r.name,
             method,
             url,
             params: params.filter(p => p.key || p.value),
@@ -523,8 +533,12 @@ function App() {
       };
     }));
 
-    setSavedToCollection(true);
-    setTimeout(() => setSavedToCollection(false), 1500);
+    // Clear dirty flag
+    const updatedTabs = tabs.map(t =>
+      t.id === activeTabId ? { ...t, collectionDirty: false } : t
+    );
+    setTabs(updatedTabs);
+    saveTabs(updatedTabs);
   };
 
   const renameRequestInCollection = (collectionId: string, requestId: string, name: string) => {
@@ -689,6 +703,34 @@ function App() {
       saveCurrentTab();
     }
   }, [method, url, params, headers, bodyType, bodyContent, response, loading, error]);
+
+  // Track dirty state for collection-linked tabs
+  useEffect(() => {
+    if (loadingTabRef.current) {
+      loadingTabRef.current = false;
+      return;
+    }
+    const activeTab = tabs.find(t => t.id === activeTabId);
+    if (activeTab?.collectionRequestId && !activeTab.collectionDirty) {
+      const updatedTabs = tabs.map(t =>
+        t.id === activeTabId ? { ...t, collectionDirty: true } : t
+      );
+      setTabs(updatedTabs);
+      saveTabs(updatedTabs);
+    }
+  }, [method, url, params, headers, bodyType, bodyContent]);
+
+  // Cmd+S saves current tab to collection
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === "s") {
+        e.preventDefault();
+        saveTabToCollection();
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [tabs, activeTabId, collections, method, url, params, headers, bodyType, bodyContent]);
 
   const toggleTheme = () => {
     setTheme(theme === "dark" ? "light" : "dark");
@@ -933,6 +975,7 @@ function App() {
                   onMouseDown={(e) => handleTabMouseDown(index, e)}
                 >
                   <span className="tab-method-badge">{tab.method}</span>
+                  {tab.collectionDirty && <span className="tab-dirty-dot" title="Unsaved changes (Cmd+S to save)" />}
                   {renamingTabId === tab.id ? (
                     <input
                       className="tab-rename-input"
@@ -1005,16 +1048,6 @@ function App() {
                 onChange={(e) => setUrl(e.target.value)}
                 placeholder="Enter request URL..."
               />
-
-              {tabs.find(t => t.id === activeTabId)?.collectionRequestId && (
-                <button
-                  className={`save-collection-btn ${savedToCollection ? 'saved' : ''}`}
-                  onClick={saveTabToCollection}
-                  title="Save changes to collection"
-                >
-                  {savedToCollection ? '✓' : '💾'}
-                </button>
-              )}
 
               <button
                 className="send-button"

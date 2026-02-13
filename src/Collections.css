@@ -422,12 +422,12 @@
 
 /* Collections toggle button in header */
 .collections-toggle {
-  padding: 6px 12px;
+  padding: 8px 16px;
   background: var(--bg-tertiary);
   border: 1px solid transparent;
   border-radius: 8px;
   color: var(--text-secondary);
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 500;
   cursor: pointer;
   transition: all 0.2s ease;

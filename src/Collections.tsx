@@ -190,7 +190,7 @@ export function CollectionsSidebar({
     };
   }, [colDragFrom, colDragOver, onReorderCollections]);
 
-  const handleStartRenameRequest = (collectionId: string, request: { id: string; name: string; url: string }) => {
+  const handleStartRenameRequest = (_collectionId: string, request: { id: string; name: string; url: string }) => {
     setRenamingRequestId(request.id);
     setRenamingRequestName(request.name || getShortUrl(request.url));
   };
