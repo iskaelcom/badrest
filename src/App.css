@@ -5,9 +5,9 @@
   --bg-primary: #0a0a0f;
   --bg-secondary: #13131a;
   --bg-tertiary: #1a1a24;
-  --accent-primary: #6366f1;
-  --accent-secondary: #8b5cf6;
-  --accent-gradient: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+  --accent-primary: #0066cc;
+  --accent-secondary: #004d99;
+  --accent-gradient: #0066cc;
   --text-primary: #e4e4e7;
   --text-secondary: #a1a1aa;
   --text-muted: #71717a;
@@ -210,7 +210,7 @@ body {
 .method-select:focus {
   outline: none;
   border-color: var(--accent-primary);
-  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+  box-shadow: 0 0 0 3px rgba(0, 102, 204, 0.1);
 }
 
 .url-input {
@@ -239,7 +239,7 @@ body {
 .url-input:focus {
   outline: none;
   border-color: var(--accent-primary);
-  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+  box-shadow: 0 0 0 3px rgba(217, 119, 6, 0.1);
   white-space: pre-wrap;
   word-break: break-all;
   overflow-y: auto;
@@ -371,12 +371,12 @@ body {
   font-size: 14px;
   cursor: pointer;
   transition: all 0.2s ease;
-  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+  box-shadow: 0 4px 12px rgba(0, 102, 204, 0.3);
 }
 
 .send-button:hover {
   transform: translateY(-1px);
-  box-shadow: 0 6px 16px rgba(99, 102, 241, 0.4);
+  box-shadow: 0 6px 16px rgba(0, 102, 204, 0.4);
 }
 
 .send-button:active {
@@ -411,7 +411,7 @@ body {
 
 .tab:hover {
   color: var(--text-primary);
-  background: rgba(99, 102, 241, 0.05);
+  background: rgba(0, 102, 204, 0.05);
 }
 
 .tab.active {
@@ -504,7 +504,7 @@ body {
 .key-value-input:focus {
   outline: none;
   border-color: var(--accent-primary);
-  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+  box-shadow: 0 0 0 3px rgba(217, 119, 6, 0.1);
 }
 
 .key-value-input::placeholder {
@@ -542,7 +542,7 @@ body {
 .add-button:hover {
   border-color: var(--accent-primary);
   color: var(--accent-primary);
-  background: rgba(99, 102, 241, 0.05);
+  background: rgba(217, 119, 6, 0.05);
 }
 
 /* Body Editor */
@@ -597,7 +597,7 @@ body {
 .body-textarea:focus {
   outline: none;
   border-color: var(--accent-primary);
-  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+  box-shadow: 0 0 0 3px rgba(217, 119, 6, 0.1);
 }
 
 /* Response Viewer */
