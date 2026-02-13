@@ -303,6 +303,32 @@ function App() {
     saveTabs(updatedTabs);
   };
 
+  const closeOtherTabs = (tabId: string) => {
+    const keepTab = tabs.find(t => t.id === tabId);
+    if (!keepTab) return;
+    setTabs([keepTab]);
+    if (activeTabId !== tabId) {
+      setActiveTabId(keepTab.id);
+      loadTabState(keepTab);
+      localStorage.setItem('badrest-active-tab', keepTab.id);
+    }
+    saveTabs([keepTab]);
+  };
+
+  const closeTabsToRight = (tabId: string) => {
+    const index = tabs.findIndex(t => t.id === tabId);
+    if (index === -1 || index === tabs.length - 1) return;
+    const updatedTabs = tabs.slice(0, index + 1);
+    setTabs(updatedTabs);
+    if (!updatedTabs.find(t => t.id === activeTabId)) {
+      const newActive = updatedTabs[updatedTabs.length - 1];
+      setActiveTabId(newActive.id);
+      loadTabState(newActive);
+      localStorage.setItem('badrest-active-tab', newActive.id);
+    }
+    saveTabs(updatedTabs);
+  };
+
   const reorderTabs = (fromIndex: number, toIndex: number) => {
     if (fromIndex === toIndex) return;
     const reordered = [...tabs];
@@ -1429,15 +1455,37 @@ function App() {
             Rename Tab
           </button>
           {tabs.length > 1 && (
-            <button
-              className="tab-context-menu-item delete"
-              onClick={() => {
-                closeTab(tabContextMenu.tabId);
-                setTabContextMenu(null);
-              }}
-            >
-              Close Tab
-            </button>
+            <>
+              <button
+                className="tab-context-menu-item delete"
+                onClick={() => {
+                  closeTab(tabContextMenu.tabId);
+                  setTabContextMenu(null);
+                }}
+              >
+                Close Tab
+              </button>
+              <button
+                className="tab-context-menu-item delete"
+                onClick={() => {
+                  closeOtherTabs(tabContextMenu.tabId);
+                  setTabContextMenu(null);
+                }}
+              >
+                Close Other Tabs
+              </button>
+              {tabs.findIndex(t => t.id === tabContextMenu.tabId) < tabs.length - 1 && (
+                <button
+                  className="tab-context-menu-item delete"
+                  onClick={() => {
+                    closeTabsToRight(tabContextMenu.tabId);
+                    setTabContextMenu(null);
+                  }}
+                >
+                  Close Tabs to the Right
+                </button>
+              )}
+            </>
           )}
         </div>
       )}
