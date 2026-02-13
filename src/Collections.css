@@ -348,6 +348,18 @@
   color: var(--text-primary);
 }
 
+.collection-request-rename-input {
+  flex: 1;
+  padding: 2px 6px;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--accent-primary);
+  border-radius: 3px;
+  color: var(--text-primary);
+  font-size: 12px;
+  outline: none;
+  min-width: 0;
+}
+
 .collection-request-remove {
   background: none;
   border: none;

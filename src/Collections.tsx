@@ -15,6 +15,7 @@ interface CollectionsSidebarProps {
   onSaveRequest: (collectionId: string) => void;
   onOpenRequest: (collectionId: string, requestId: string) => void;
   onRemoveRequest: (collectionId: string, requestId: string) => void;
+  onRenameRequest: (collectionId: string, requestId: string, name: string) => void;
   onReorderRequest: (collectionId: string, fromIndex: number, toIndex: number) => void;
   onUpdateHeaders: (id: string, headers: KeyValue[]) => void;
   onUpdateVariables: (id: string, variables: KeyValue[]) => void;
@@ -41,6 +42,7 @@ export function CollectionsSidebar({
   onSaveRequest,
   onOpenRequest,
   onRemoveRequest,
+  onRenameRequest,
   onReorderRequest,
   onUpdateHeaders,
   onUpdateVariables,
@@ -52,6 +54,8 @@ export function CollectionsSidebar({
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editingName, setEditingName] = useState("");
   const [settingsId, setSettingsId] = useState<string | null>(null);
+  const [renamingRequestId, setRenamingRequestId] = useState<string | null>(null);
+  const [renamingRequestName, setRenamingRequestName] = useState("");
   const newInputRef = useRef<HTMLInputElement>(null);
 
   // Mouse-based drag state for request reordering
@@ -129,6 +133,19 @@ export function CollectionsSidebar({
       window.removeEventListener('mouseup', handleMouseUp);
     };
   }, [dragFrom, dragOverIndex, onReorderRequest]);
+
+  const handleStartRenameRequest = (collectionId: string, request: { id: string; name: string; url: string }) => {
+    setRenamingRequestId(request.id);
+    setRenamingRequestName(request.name || getShortUrl(request.url));
+  };
+
+  const handleFinishRenameRequest = (collectionId: string) => {
+    if (renamingRequestId && renamingRequestName.trim()) {
+      onRenameRequest(collectionId, renamingRequestId, renamingRequestName.trim());
+    }
+    setRenamingRequestId(null);
+    setRenamingRequestName("");
+  };
 
   const getShortUrl = (url: string) => {
     try {
@@ -308,9 +325,38 @@ export function CollectionsSidebar({
                     >
                       {request.method}
                     </span>
-                    <span className="collection-request-name">
-                      {getShortUrl(request.url)}
-                    </span>
+                    {renamingRequestId === request.id ? (
+                      <input
+                        className="collection-request-rename-input"
+                        type="text"
+                        value={renamingRequestName}
+                        onChange={(e) => setRenamingRequestName(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter") handleFinishRenameRequest(collection.id);
+                          if (e.key === "Escape") {
+                            setRenamingRequestId(null);
+                            setRenamingRequestName("");
+                          }
+                        }}
+                        onBlur={() => handleFinishRenameRequest(collection.id)}
+                        onClick={(e) => e.stopPropagation()}
+                        onMouseDown={(e) => e.stopPropagation()}
+                        autoFocus
+                      />
+                    ) : (
+                      <span
+                        className="collection-request-name"
+                        onDoubleClick={(e) => {
+                          e.stopPropagation();
+                          handleStartRenameRequest(collection.id, request);
+                        }}
+                        title={request.url}
+                      >
+                        {request.name && request.name !== request.url
+                          ? request.name
+                          : getShortUrl(request.url)}
+                      </span>
+                    )}
                     <button
                       className="collection-request-remove"
                       onClick={(e) => {

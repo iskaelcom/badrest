@@ -108,6 +108,19 @@
     font-weight: 500;
 }
 
+.tab-rename-input {
+    flex: 1;
+    padding: 2px 6px;
+    background: var(--bg-tertiary);
+    border: 1px solid var(--accent-primary);
+    border-radius: 3px;
+    color: var(--text-primary);
+    font-size: 12px;
+    font-weight: 500;
+    outline: none;
+    min-width: 0;
+}
+
 .tab-close {
     background: none;
     border: none;

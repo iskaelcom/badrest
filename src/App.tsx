@@ -107,6 +107,10 @@ function App() {
   const [tabDragFrom, setTabDragFrom] = useState<number | null>(null);
   const [tabDragOver, setTabDragOver] = useState<number | null>(null);
 
+  // Tab rename state
+  const [renamingTabId, setRenamingTabId] = useState<string | null>(null);
+  const [renamingTabName, setRenamingTabName] = useState("");
+
   // UI state
   const [copied, setCopied] = useState(false);
   const [savedToCollection, setSavedToCollection] = useState(false);
@@ -262,8 +266,37 @@ function App() {
     saveTabs(reordered);
   };
 
+  const startTabRename = (tab: RequestTab) => {
+    setRenamingTabId(tab.id);
+    setRenamingTabName(tab.name && tab.name !== tab.url ? tab.name : (tab.url || ''));
+  };
+
+  const finishTabRename = () => {
+    if (renamingTabId && renamingTabName.trim()) {
+      const updatedTabs = tabs.map(t =>
+        t.id === renamingTabId ? { ...t, name: renamingTabName.trim() } : t
+      );
+      setTabs(updatedTabs);
+      saveTabs(updatedTabs);
+
+      // Also update collection request name if linked
+      const tab = tabs.find(t => t.id === renamingTabId);
+      if (tab?.collectionRequestId) {
+        const colId = tab.collectionId || collections.find(c =>
+          c.requests.some(r => r.id === tab.collectionRequestId)
+        )?.id;
+        if (colId) {
+          renameRequestInCollection(colId, tab.collectionRequestId, renamingTabName.trim());
+        }
+      }
+    }
+    setRenamingTabId(null);
+    setRenamingTabName("");
+  };
+
   const handleTabMouseDown = (index: number, e: React.MouseEvent) => {
     if ((e.target as HTMLElement).closest('.tab-close')) return;
+    if ((e.target as HTMLElement).closest('.tab-rename-input')) return;
     e.preventDefault();
     tabDragState.current = { index, startX: e.clientX };
   };
@@ -470,6 +503,29 @@ function App() {
 
     setSavedToCollection(true);
     setTimeout(() => setSavedToCollection(false), 1500);
+  };
+
+  const renameRequestInCollection = (collectionId: string, requestId: string, name: string) => {
+    saveCollections(collections.map(c => {
+      if (c.id !== collectionId) return c;
+      return {
+        ...c,
+        requests: c.requests.map(r =>
+          r.id === requestId ? { ...r, name } : r
+        ),
+        updatedAt: Date.now(),
+      };
+    }));
+
+    // Also update the open tab's name if this request is open
+    const openTab = tabs.find(t => t.collectionRequestId === requestId);
+    if (openTab) {
+      const updatedTabs = tabs.map(t =>
+        t.id === openTab.id ? { ...t, name } : t
+      );
+      setTabs(updatedTabs);
+      saveTabs(updatedTabs);
+    }
   };
 
   const removeRequestFromCollection = (collectionId: string, requestId: string) => {
@@ -832,6 +888,7 @@ function App() {
             onSaveRequest={saveRequestToCollection}
             onOpenRequest={openRequestFromCollection}
             onRemoveRequest={removeRequestFromCollection}
+            onRenameRequest={renameRequestInCollection}
             onReorderRequest={reorderRequest}
             onUpdateHeaders={updateCollectionHeaders}
             onUpdateVariables={updateCollectionVariables}
@@ -853,7 +910,35 @@ function App() {
                   onMouseDown={(e) => handleTabMouseDown(index, e)}
                 >
                   <span className="tab-method-badge">{tab.method}</span>
-                  <span className="tab-url">{tab.url || 'New Request'}</span>
+                  {renamingTabId === tab.id ? (
+                    <input
+                      className="tab-rename-input"
+                      type="text"
+                      value={renamingTabName}
+                      onChange={(e) => setRenamingTabName(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") finishTabRename();
+                        if (e.key === "Escape") {
+                          setRenamingTabId(null);
+                          setRenamingTabName("");
+                        }
+                      }}
+                      onBlur={finishTabRename}
+                      onClick={(e) => e.stopPropagation()}
+                      onMouseDown={(e) => e.stopPropagation()}
+                      autoFocus
+                    />
+                  ) : (
+                    <span
+                      className="tab-url"
+                      onDoubleClick={(e) => {
+                        e.stopPropagation();
+                        startTabRename(tab);
+                      }}
+                    >
+                      {tab.name && tab.name !== tab.url ? tab.name : (tab.url || 'New Request')}
+                    </span>
+                  )}
                   {tabs.length > 1 && (
                     <button
                       className="tab-close"
