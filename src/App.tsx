@@ -79,6 +79,16 @@ export interface Collection {
   collapsed: boolean;
 }
 
+const METHOD_COLORS: Record<string, string> = {
+  GET: "#10b981",
+  POST: "#6366f1",
+  PUT: "#f59e0b",
+  DELETE: "#ef4444",
+  PATCH: "#8b5cf6",
+  HEAD: "#71717a",
+  OPTIONS: "#71717a",
+};
+
 function App() {
   const [theme, setTheme] = useState<"light" | "dark">(() => {
     const savedTheme = localStorage.getItem("badrest-theme");
@@ -824,14 +834,19 @@ function App() {
       loadingTabRef.current = false;
       return;
     }
-    const activeTab = tabs.find(t => t.id === activeTabId);
-    if (activeTab?.collectionRequestId && !activeTab.collectionDirty) {
-      const updatedTabs = tabs.map(t =>
-        t.id === activeTabId ? { ...t, collectionDirty: true } : t
-      );
-      setTabs(updatedTabs);
-      saveTabs(updatedTabs);
-    }
+    // Use functional updater to avoid overwriting concurrent saveCurrentTab updates
+    setTabs(prevTabs => {
+      const activeTab = prevTabs.find(t => t.id === activeTabId);
+      if (activeTab?.collectionRequestId && !activeTab.collectionDirty) {
+        const updated = prevTabs.map(t =>
+          t.id === activeTabId ? { ...t, collectionDirty: true } : t
+        );
+        localStorage.setItem('badrest-tabs', JSON.stringify(updated));
+        localStorage.setItem('badrest-active-tab', activeTabId);
+        return updated;
+      }
+      return prevTabs;
+    });
   }, [method, url, params, headers, bodyType, bodyContent]);
 
   // Keyboard shortcuts
@@ -1097,7 +1112,7 @@ function App() {
                   className="history-item"
                   onClick={() => loadFromHistory(item)}
                 >
-                  <div className="history-item-method">{item.method}</div>
+                  <div className="history-item-method" style={{ color: METHOD_COLORS[item.method] || "#71717a" }}>{item.method}</div>
                   <div className="history-item-url">{item.url}</div>
                   <div className="history-item-time">
                     {new Date(item.timestamp).toLocaleString()}
@@ -1146,7 +1161,7 @@ function App() {
                     setTabContextMenu({ x: e.clientX, y: e.clientY, tabId: tab.id });
                   }}
                 >
-                  <span className="tab-method-badge">{tab.method}</span>
+                  <span className="tab-method-badge" style={{ background: METHOD_COLORS[tab.method] || "#71717a" }}>{tab.method}</span>
                   {tab.collectionDirty && <span className="tab-dirty-dot" title="Unsaved changes (Cmd+S to save)" />}
                   {renamingTabId === tab.id ? (
                     <input

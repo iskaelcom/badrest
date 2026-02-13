@@ -100,11 +100,10 @@
 .history-item-method {
     display: inline-block;
     padding: 2px 8px;
-    background: var(--accent-primary);
-    color: white;
+    background: var(--bg-tertiary);
     border-radius: 4px;
     font-size: 11px;
-    font-weight: 600;
+    font-weight: 700;
     margin-bottom: 6px;
 }
 
