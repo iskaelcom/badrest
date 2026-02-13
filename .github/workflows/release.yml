@@ -13,11 +13,9 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - platform: 'macos-latest' # for Arm64
+          - platform: 'macos-latest' # for Apple Silicon (ARM64)
             args: '--target aarch64-apple-darwin'
-          - platform: 'macos-13' # for Intel
-            args: '--target x86_64-apple-darwin'
-          - platform: 'windows-latest'
+          - platform: 'windows-latest' # for Intel
             args: ''
 
     runs-on: ${{ matrix.platform }}
@@ -33,7 +31,7 @@ jobs:
         uses: dtolnay/rust-toolchain@stable
         with:
           # Those targets are only used on macos runners so it's in an `if` to slightly speed up windows
-          targets: ${{ matrix.platform == 'macos-latest' && 'aarch64-apple-darwin' || matrix.platform == 'macos-13' && 'x86_64-apple-darwin' || '' }}
+          targets: ${{ matrix.platform == 'macos-latest' && 'aarch64-apple-darwin' || '' }}
 
       - name: install dependencies (ubuntu only)
         if: matrix.platform == 'ubuntu-20.04'
