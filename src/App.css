@@ -146,6 +146,7 @@ body {
   flex-direction: column;
   border-right: 1px solid var(--border-color);
   overflow: hidden;
+  min-width: 320px;
 }
 
 .response-panel {
@@ -153,11 +154,23 @@ body {
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  min-width: 320px;
 }
 
 /* Resize Handle */
 .resize-handle {
-  display: none;
+  width: 5px;
+  cursor: col-resize;
+  background: transparent;
+  flex-shrink: 0;
+  position: relative;
+  z-index: 10;
+  transition: background 0.15s ease;
+}
+
+.resize-handle:hover,
+.resize-handle:active {
+  background: var(--accent-primary);
 }
 
 /* Request Builder */
@@ -850,6 +863,7 @@ body {
 
   .request-panel {
     width: 100% !important;
+    min-width: 0;
     border-right: none;
     border-bottom: 1px solid var(--border-color);
     max-height: 50vh;
@@ -857,6 +871,7 @@ body {
 
   .response-panel {
     width: 100% !important;
+    min-width: 0;
     flex: 1;
   }
 

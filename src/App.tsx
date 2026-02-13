@@ -138,6 +138,11 @@ function App() {
   // Save-to-collection picker
   const [showCollectionPicker, setShowCollectionPicker] = useState(false);
 
+  // Panel resize state
+  const [requestPanelWidth, setRequestPanelWidth] = useState<number | null>(null);
+  const resizeRef = useRef<{ startX: number; startWidth: number } | null>(null);
+  const mainContentRef = useRef<HTMLDivElement>(null);
+
 
 
   // Tab management functions
@@ -859,6 +864,42 @@ function App() {
     return () => window.removeEventListener("click", handleClick);
   }, [tabContextMenu]);
 
+  // Panel resize handlers
+  const handleResizeMouseDown = (e: React.MouseEvent) => {
+    e.preventDefault();
+    const requestPanel = mainContentRef.current?.querySelector('.request-panel') as HTMLElement;
+    if (!requestPanel) return;
+    resizeRef.current = { startX: e.clientX, startWidth: requestPanel.getBoundingClientRect().width };
+    document.body.style.cursor = 'col-resize';
+    document.body.style.userSelect = 'none';
+  };
+
+  useEffect(() => {
+    const handleMouseMove = (e: MouseEvent) => {
+      if (!resizeRef.current || !mainContentRef.current) return;
+      const containerWidth = mainContentRef.current.getBoundingClientRect().width;
+      const delta = e.clientX - resizeRef.current.startX;
+      const newWidth = resizeRef.current.startWidth + delta;
+      const minWidth = 320;
+      const maxWidth = containerWidth - 320;
+      setRequestPanelWidth(Math.max(minWidth, Math.min(maxWidth, newWidth)));
+    };
+
+    const handleMouseUp = () => {
+      if (!resizeRef.current) return;
+      resizeRef.current = null;
+      document.body.style.cursor = '';
+      document.body.style.userSelect = '';
+    };
+
+    window.addEventListener('mousemove', handleMouseMove);
+    window.addEventListener('mouseup', handleMouseUp);
+    return () => {
+      window.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener('mouseup', handleMouseUp);
+    };
+  }, []);
+
   const toggleTheme = () => {
     setTheme(theme === "dark" ? "light" : "dark");
   };
@@ -1088,9 +1129,9 @@ function App() {
             onReorderCollections={reorderCollections}
           />
         )}
-      <div className="main-content">
+      <div className="main-content" ref={mainContentRef}>
         {/* Request Panel */}
-        <div className="request-panel">
+        <div className="request-panel" style={requestPanelWidth ? { width: requestPanelWidth, flex: 'none' } : undefined}>
           {/* Tab Bar */}
           <div className="tab-bar">
             <div className="tab-list" ref={tabListRef}>
@@ -1329,6 +1370,9 @@ function App() {
             )}
           </div>
         </div>
+
+        {/* Resize Handle */}
+        <div className="resize-handle" onMouseDown={handleResizeMouseDown} />
 
         {/* Response Panel */}
         <div className="response-panel">
