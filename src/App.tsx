@@ -720,12 +720,22 @@ function App() {
     }
   }, [method, url, params, headers, bodyType, bodyContent]);
 
-  // Cmd+S saves current tab to collection
+  // Keyboard shortcuts
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if ((e.metaKey || e.ctrlKey) && e.key === "s") {
         e.preventDefault();
         saveTabToCollection();
+      }
+      if (e.altKey && !e.metaKey && !e.ctrlKey && e.code === "KeyH") {
+        e.preventDefault();
+        e.stopPropagation();
+        setShowHistory(prev => !prev);
+      }
+      if (e.altKey && !e.metaKey && !e.ctrlKey && e.code === "KeyC") {
+        e.preventDefault();
+        e.stopPropagation();
+        setShowCollections(prev => !prev);
       }
     };
     window.addEventListener("keydown", handleKeyDown);
